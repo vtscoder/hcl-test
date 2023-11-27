@@ -6,5 +6,5 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 
 public interface Server {
-    boolean saveDataEnvelope(DataEnvelope envelope) throws IOException, NoSuchAlgorithmException;
+    boolean saveDataEnvelope(String requestCheckSum, DataEnvelope envelope) throws Exception;
 }

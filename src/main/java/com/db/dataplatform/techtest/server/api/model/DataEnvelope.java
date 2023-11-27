@@ -1,5 +1,6 @@
 package com.db.dataplatform.techtest.server.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
@@ -21,5 +22,6 @@ public class DataEnvelope {
     private DataHeader dataHeader;
 
     @NotNull
+    @Valid
     private DataBody dataBody;
 }

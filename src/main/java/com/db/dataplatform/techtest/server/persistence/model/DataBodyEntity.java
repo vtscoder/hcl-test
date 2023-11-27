@@ -24,6 +24,9 @@ public class DataBodyEntity {
     @Column(name = "DATA_BODY")
     private String dataBody;
 
+    @Column(name = "DATA_CHECK_SUM")
+    private String dataCheckSum;
+
     @Column(name = "CREATED_TIMESTAMP")
     private Instant createdTimestamp;
 

@@ -14,6 +14,10 @@ public class TestDataHelper {
     public static final String TEST_NAME = "Test";
     public static final String TEST_NAME_EMPTY = "";
     public static final String DUMMY_DATA = "AKCp5fU4WNWKBVvhXsbNhqk33tawri9iJUkA5o4A6YqpwvAoYjajVw8xdEw6r9796h1wEp29D";
+    public static final String REQUEST_CHECKSUM = "20fbe850565cff2baf0c33d85c4efcc9";
+
+    public static final String REQUEST_CHECKSUM_INVALID = "20fbe850565cff2baf0c33d85c4efccugf6t6767yg";
+
 
     public static DataHeaderEntity createTestDataHeaderEntity(Instant expectedTimestamp) {
         DataHeaderEntity dataHeaderEntity = new DataHeaderEntity();

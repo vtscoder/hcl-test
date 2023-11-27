@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.db.dataplatform.techtest.service.DataHeaderServiceTests" tests="1" skipped="0" failures="0" errors="0" timestamp="2023-11-27T11:35:15" hostname="Vineeths-MBP.broadband" time="0.07">
-  <properties/>
-  <testcase name="shouldSaveDataHeaderEntityAsExpected" classname="com.db.dataplatform.techtest.service.DataHeaderServiceTests" time="0.07"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

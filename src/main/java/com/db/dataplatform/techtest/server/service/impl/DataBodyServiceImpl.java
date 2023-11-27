@@ -21,8 +21,8 @@ public class DataBodyServiceImpl implements DataBodyService {
     private final DataStoreRepository dataStoreRepository;
 
     @Override
-    @Retryable(value = SQLException.class, maxAttemptsExpression = "${retry.maxAttempts}",
-            backoff = @Backoff(delayExpression = "${retry.maxDelay}"))
+//    @Retryable(value = SQLException.class, maxAttemptsExpression = "${retry.maxAttempts}",
+//            backoff = @Backoff(delayExpression = "${retry.maxDelay}"))
     public void saveDataBody(DataBodyEntity dataBody) {
         dataStoreRepository.save(dataBody);
     }
