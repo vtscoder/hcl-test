@@ -6,7 +6,7 @@ import com.db.dataplatform.techtest.server.exception.CheckSumNotMatchingExceptio
 import com.db.dataplatform.techtest.server.mapper.ServerMapperConfiguration;
 import com.db.dataplatform.techtest.server.persistence.model.DataBodyEntity;
 import com.db.dataplatform.techtest.server.persistence.model.DataHeaderEntity;
-import com.db.dataplatform.techtest.server.service.DataBodyService;
+import com.db.dataplatform.techtest.server.persistence.repository.DataStoreRepository;
 import com.db.dataplatform.techtest.server.component.Server;
 import com.db.dataplatform.techtest.server.component.impl.ServerImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,9 +24,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ServerServiceTests {
-
     @Mock
-    private DataBodyService dataBodyServiceImplMock;
+    private DataStoreRepository dataStoreRepository;
 
     private ModelMapper modelMapper;
 
@@ -51,7 +50,7 @@ public class ServerServiceTests {
         expectedDataBodyEntity = modelMapper.map(testDataEnvelope.getDataBody(), DataBodyEntity.class);
         expectedDataBodyEntity.setDataHeaderEntity(modelMapper.map(testDataEnvelope.getDataHeader(), DataHeaderEntity.class));
 
-        server = new ServerImpl(dataBodyServiceImplMock, modelMapper, objectMapper);
+        server = new ServerImpl(dataStoreRepository, modelMapper, objectMapper);
     }
 
     @Test
@@ -60,7 +59,7 @@ public class ServerServiceTests {
 
         boolean success = server.saveDataEnvelope(TestDataHelper.REQUEST_CHECKSUM, testDataEnvelope);
         assertThat(success).isTrue();
-        Mockito.verify(dataBodyServiceImplMock, Mockito.times(1)).saveDataBody(captorDataBodyEntity.capture());
+        Mockito.verify(dataStoreRepository, Mockito.times(1)).save(captorDataBodyEntity.capture());
 
         DataBodyEntity bodyEntity =  captorDataBodyEntity.getValue();
         assertThat(bodyEntity.getDataBody()).isEqualTo(testDataEnvelope.getDataBody().getDataBody());

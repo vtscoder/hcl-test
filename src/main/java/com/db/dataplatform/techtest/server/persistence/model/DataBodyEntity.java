@@ -17,7 +17,7 @@ public class DataBodyEntity {
     @Column(name = "DATA_STORE_ID")
     private Long id;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "DATA_HEADER_ID")
     private DataHeaderEntity dataHeaderEntity;
 

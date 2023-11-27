@@ -20,7 +20,7 @@ public class DataHeaderEntityTests {
     public void assignDataHeaderEntityFieldsShouldWorkAsExpected() {
         Instant expectedTimestamp = Instant.now();
 
-        DataHeaderEntity dataHeaderEntity = TestDataHelper.createTestDataHeaderEntity(expectedTimestamp);
+        DataHeaderEntity dataHeaderEntity = TestDataHelper.createTestDataHeaderEntity(BlockTypeEnum.BLOCKTYPEA, TEST_NAME, expectedTimestamp);
 
         assertThat(dataHeaderEntity.getName()).isEqualTo(TEST_NAME);
         assertThat(dataHeaderEntity.getBlocktype()).isEqualTo(BlockTypeEnum.BLOCKTYPEA);

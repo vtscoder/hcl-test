@@ -20,9 +20,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ClientImpl implements Client {
     private final RestTemplate restTemplate;
-    public static final String URI_PUSHDATA = "http://localhost:8090/api/v1/dataserver/pushdata";
-    public static final UriTemplate URI_GETDATA = new UriTemplate("http://localhost:8090/dataserver/data/{blockType}");
-    public static final UriTemplate URI_PATCHDATA = new UriTemplate("http://localhost:8090/dataserver/update/{name}/{newBlockType}");
+    public static final String URI_PUSHDATA = "http://localhost:8090/api/v1/dataserver/data";
+    public static final UriTemplate URI_GETDATA = new UriTemplate("http://localhost:8090/api/v1/dataserver/data/{blockType}");
+    public static final UriTemplate URI_PATCHDATA = new UriTemplate("http://localhost:8090/api/v1/dataserver/update/{name}/{blockType}");
 
     @Override
     public void pushData(DataEnvelope dataEnvelope) {
