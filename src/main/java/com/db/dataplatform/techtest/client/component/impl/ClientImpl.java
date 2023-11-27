@@ -2,14 +2,20 @@ package com.db.dataplatform.techtest.client.component.impl;
 
 import com.db.dataplatform.techtest.client.api.model.DataEnvelope;
 import com.db.dataplatform.techtest.client.component.Client;
+import com.db.dataplatform.techtest.server.dto.DataBody;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriTemplate;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Client code does not require any test coverage
@@ -32,9 +38,19 @@ public class ClientImpl implements Client {
     }
 
     @Override
-    public List<DataEnvelope> getData(String blockType) {
+    public List<DataBody> getData(String blockType) {
         log.info("Query for data with header block type {}", blockType);
-        return null;
+//        ResponseEntity<DataBody[]> responseEntity =
+//                restTemplate.getForEntity(URI_GETDATA, DataBody[].class);
+
+        Map<String,String> variables = new HashMap<>();
+        variables.put("blockType", blockType);
+        ResponseEntity<List<DataBody>> responseEntity =
+                restTemplate.exchange(URI_GETDATA.expand(variables),
+                        HttpMethod.GET, null, new ParameterizedTypeReference<List<DataBody>>() {
+        });
+        log.info("");
+        return responseEntity.getBody();
     }
 
     @Override

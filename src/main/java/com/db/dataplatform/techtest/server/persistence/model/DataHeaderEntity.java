@@ -3,6 +3,7 @@ package com.db.dataplatform.techtest.server.persistence.model;
 import com.db.dataplatform.techtest.server.persistence.BlockTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.time.Instant;
@@ -14,6 +15,7 @@ import java.time.Instant;
 )
 @Setter
 @Getter
+@ToString
 public class DataHeaderEntity {
 
     @Id

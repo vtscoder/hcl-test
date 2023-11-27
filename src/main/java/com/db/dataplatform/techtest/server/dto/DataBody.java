@@ -9,6 +9,7 @@ import java.time.Instant;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class DataBody {
     private Long id;
     private DataHeader dataHeader;

@@ -48,7 +48,7 @@ public class TechTestApplication {
 
 	private void queryData() {
 
-		List<DataEnvelope> data = client.getData(BlockTypeEnum.BLOCKTYPEA.name());
+		List<com.db.dataplatform.techtest.server.dto.DataBody> data = client.getData(BlockTypeEnum.BLOCKTYPEA.name());
 	}
 
 	private void pushData() throws JsonProcessingException {

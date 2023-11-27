@@ -2,6 +2,7 @@ package com.db.dataplatform.techtest.server.persistence.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.time.Instant;
@@ -10,6 +11,7 @@ import java.time.Instant;
 @Table(name = "DATA_STORE")
 @Setter
 @Getter
+@ToString
 public class DataBodyEntity {
 
     @Id

@@ -11,6 +11,7 @@ import java.time.Instant;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class DataHeader {
     private Long id;
     private String name;
