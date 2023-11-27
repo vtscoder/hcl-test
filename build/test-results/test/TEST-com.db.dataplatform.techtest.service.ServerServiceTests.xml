@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.db.dataplatform.techtest.service.ServerServiceTests" tests="1" skipped="0" failures="0" errors="0" timestamp="2023-11-27T11:35:15" hostname="Vineeths-MBP.broadband" time="0.056">
+  <properties/>
+  <testcase name="shouldSaveDataEnvelopeAsExpected" classname="com.db.dataplatform.techtest.service.ServerServiceTests" time="0.056"/>
+  <system-out><![CDATA[11:35:15.624 [Test worker] INFO com.db.dataplatform.techtest.server.component.impl.ServerImpl - Persisting data with attribute name: Test
+11:35:15.625 [Test worker] INFO com.db.dataplatform.techtest.server.component.impl.ServerImpl - Data persisted successfully, data name: Test
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
