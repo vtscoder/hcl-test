@@ -3,6 +3,7 @@ package com.db.dataplatform.techtest.server.api.controller;
 import com.db.dataplatform.techtest.Constants;
 import com.db.dataplatform.techtest.server.api.model.DataEnvelope;
 import com.db.dataplatform.techtest.server.api.model.UpdateDataHeader;
+import com.db.dataplatform.techtest.server.exception.DataNotFoundException;
 import com.db.dataplatform.techtest.server.service.Server;
 import com.db.dataplatform.techtest.server.exception.CheckSumNotMatchingException;
 import com.db.dataplatform.techtest.server.exception.DownStreamPushDataException;
@@ -57,11 +58,16 @@ public class ServerController {
     }
 
 
-    @PutMapping(value = "/data/{name}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity updateHeader(
+    @PatchMapping(value = "/data/{name}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity patchHeader(
             @PathVariable String name,
             @Valid @RequestBody UpdateDataHeader updateDataHeader) throws Exception {
-        server.updateHeader(name, updateDataHeader);
+        try {
+            server.patchHeader(name, updateDataHeader);
+        }catch (DataNotFoundException dataNotFoundException){
+            log.error(dataNotFoundException.getMessage());
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, dataNotFoundException.getMessage());
+        }
         return ResponseEntity.ok().build();
     }
 

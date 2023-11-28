@@ -70,7 +70,7 @@ public class ServerImpl implements Server {
     }
 
     @Override
-    public void updateHeader(String name, UpdateDataHeader updateDataHeader) throws Exception {
+    public void patchHeader(String name, UpdateDataHeader updateDataHeader) throws Exception {
       Optional<DataHeaderEntity>  dataHeaderEntityOptional = dataHeaderRepository.findByName(name);
       if(!dataHeaderEntityOptional.isPresent()){
           log.error("Data header not found for name {}", name);

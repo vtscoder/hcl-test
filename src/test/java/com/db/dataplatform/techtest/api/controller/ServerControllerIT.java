@@ -5,6 +5,7 @@ import com.db.dataplatform.techtest.TechTestApplication;
 import com.db.dataplatform.techtest.TestDataHelper;
 import com.db.dataplatform.techtest.server.api.controller.ServerController;
 import com.db.dataplatform.techtest.server.api.model.DataEnvelope;
+import com.db.dataplatform.techtest.server.api.model.UpdateDataHeader;
 import com.db.dataplatform.techtest.server.persistence.BlockTypeEnum;
 import com.db.dataplatform.techtest.server.persistence.model.DataBodyEntity;
 import com.db.dataplatform.techtest.server.persistence.model.DataHeaderEntity;
@@ -32,6 +33,8 @@ import org.springframework.web.client.RestTemplate;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ActiveProfiles("int")
@@ -119,6 +122,8 @@ public class ServerControllerIT {
                         ArgumentMatchers.anyString(),
                         ArgumentMatchers.eq(String.class))).thenThrow(new RuntimeException(""))
                 .thenThrow(new RuntimeException(""))
+                .thenThrow(new RuntimeException(""))
+                .thenThrow(new RuntimeException(""))
                 .thenThrow(new RuntimeException(""));
 
         this.mvc.perform(MockMvcRequestBuilders.post("/api/v1/dataserver/data")
@@ -129,7 +134,7 @@ public class ServerControllerIT {
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError());
 
         // Retried 3 attempts and failed
-        Mockito.verify(restTemplate, Mockito.times(3))
+        Mockito.verify(restTemplate, Mockito.times(5))
                 .postForEntity(ArgumentMatchers.eq(hadoopApi),
                         ArgumentMatchers.anyString(),
                         ArgumentMatchers.eq(String.class));
@@ -183,6 +188,58 @@ public class ServerControllerIT {
                 .andExpect(MockMvcResultMatchers.jsonPath("$[1].dataHeader.name").value(dataHeaderEntity_1.getName()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$[1].dataHeader.blocktype").value(dataHeaderEntity_1.getBlocktype().getType()))
                 .andExpect(MockMvcResultMatchers.jsonPath("$[1].dataHeader.createdTimestamp").isNotEmpty());
+    }
+
+
+    @Test
+    public void shouldTestPatchDataByName() throws Exception {
+
+        DataHeaderEntity dataHeaderEntity =  TestDataHelper.createTestDataHeaderEntity(BlockTypeEnum.BLOCKTYPEA,"name", Instant.now());
+        DataBodyEntity dataBodyEntity =  TestDataHelper.createTestDataBodyEntity(dataHeaderEntity);
+        dataHeaderEntity.setDataBodyEntity(dataBodyEntity);
+        DataHeaderEntity dataHeaderEntity_1 =  TestDataHelper.createTestDataHeaderEntity(BlockTypeEnum.BLOCKTYPEA,"name1", Instant.now());
+        DataBodyEntity dataBodyEntity_1 =  TestDataHelper.createTestDataBodyEntity(dataHeaderEntity_1);
+        dataHeaderEntity_1.setDataBodyEntity(dataBodyEntity_1);
+        DataHeaderEntity dataHeaderEntity_2 =  TestDataHelper.createTestDataHeaderEntity(BlockTypeEnum.BLOCKTYPEB,"name3", Instant.now());
+        DataBodyEntity dataBodyEntity_2 =  TestDataHelper.createTestDataBodyEntity(dataHeaderEntity_2);
+        dataHeaderEntity_2.setDataBodyEntity(dataBodyEntity_2);
+
+        dataStoreRepository.saveAll(Arrays.asList(dataBodyEntity, dataBodyEntity_1, dataBodyEntity_2));
+
+        UpdateDataHeader updateDataHeader =  UpdateDataHeader
+                .builder()
+                .blockType(BlockTypeEnum.BLOCKTYPEB)
+                .build();
+
+
+        this.mvc.perform(MockMvcRequestBuilders.patch("/api/v1/dataserver/data/name")
+                        .header(Constants.X_REQUEST_BODY_CHECKSUM, TestDataHelper.REQUEST_CHECKSUM)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateDataHeader))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+      Optional<DataHeaderEntity>  updatedData = dataHeaderRepository.findByName("name");
+      assertThat(updatedData).isNotEmpty();
+      assertThat(updatedData.get().getName()).isEqualTo("name");
+      assertThat(updatedData.get().getBlocktype()).isEqualTo(BlockTypeEnum.BLOCKTYPEB);
+    }
+
+    @Test
+    public void shouldTestPatchDataNotFound() throws Exception {
+
+        UpdateDataHeader updateDataHeader =  UpdateDataHeader
+                .builder()
+                .blockType(BlockTypeEnum.BLOCKTYPEB)
+                .build();
+
+
+        this.mvc.perform(MockMvcRequestBuilders.patch("/api/v1/dataserver/data/name")
+                        .header(Constants.X_REQUEST_BODY_CHECKSUM, TestDataHelper.REQUEST_CHECKSUM)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateDataHeader))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
     }
 
 

@@ -53,9 +53,7 @@ public class ClientImpl implements Client {
         log.info("Query for data with header block type {}", blockType);
         Map<String,String> variables = new HashMap<>();
         variables.put("blockType", blockType);
-
         HttpEntity entity = new HttpEntity<>(null, null);
-
         ResponseEntity<List<DataBody>> responseEntity =
                 restTemplate.exchange(URI_GETDATA.expand(variables),
                         HttpMethod.GET, entity, new ParameterizedTypeReference<List<DataBody>>() {
