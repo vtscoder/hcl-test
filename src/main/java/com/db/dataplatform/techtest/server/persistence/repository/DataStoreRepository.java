@@ -12,6 +12,6 @@ import java.util.List;
 @Repository
 public interface DataStoreRepository extends JpaRepository<DataBodyEntity, Long> {
 
-    @Query("select dbe from DataBodyEntity dbe, DataHeaderEntity dhe where dbe.dataHeaderEntity.id = dhe.id and dhe.blocktype=:blockType")
+    @Query("select dbe from DataBodyEntity dbe, DataHeaderEntity dhe where dhe.dataBodyEntity.id = dbe.id and dhe.blocktype=:blockType")
     List<DataBodyEntity> findAllByDataHeaderBlockType(@Param("blockType") BlockTypeEnum blockType);
 }

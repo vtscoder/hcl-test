@@ -1,49 +1,61 @@
-package com.db.dataplatform.techtest.server.component.impl;
+package com.db.dataplatform.techtest.server.service.impl;
 
 import com.db.dataplatform.techtest.server.api.model.DataEnvelope;
+import com.db.dataplatform.techtest.server.api.model.UpdateDataHeader;
+import com.db.dataplatform.techtest.server.service.HadoopService;
 import com.db.dataplatform.techtest.server.exception.CheckSumNotMatchingException;
+import com.db.dataplatform.techtest.server.exception.DataNotFoundException;
 import com.db.dataplatform.techtest.server.persistence.BlockTypeEnum;
 import com.db.dataplatform.techtest.server.persistence.model.DataBodyEntity;
 import com.db.dataplatform.techtest.server.persistence.model.DataHeaderEntity;
+import com.db.dataplatform.techtest.server.persistence.repository.DataHeaderRepository;
 import com.db.dataplatform.techtest.server.persistence.repository.DataStoreRepository;
-import com.db.dataplatform.techtest.server.component.Server;
+import com.db.dataplatform.techtest.server.service.Server;
 import com.db.dataplatform.techtest.server.util.MD5Utils;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class ServerImpl implements Server {
 
     private final DataStoreRepository dataStoreRepository;
+    private final DataHeaderRepository dataHeaderRepository;
     private final ModelMapper modelMapper;
     private final ObjectMapper objectMapper;
+    private final HadoopService hadoopService;
 
     /**
      * @param envelope
      * @return true if there is a match with the client provided checksum.
      */
+    @Transactional
     @Override
     public boolean saveDataEnvelope(String requestCheckSum, DataEnvelope envelope) throws Exception{
-
         String dataCheckSum = MD5Utils.checkSum(objectMapper, envelope);
 
         if( !dataCheckSum.equals(requestCheckSum)){
             throw new CheckSumNotMatchingException("Server check sum not matching with client checksum");
         }
 
-        // Save to persistence.
         DataBodyEntity dataBodyEntity =  buildEntity(requestCheckSum, envelope);
 
+        //Save data to db
         dataStoreRepository.save(dataBodyEntity);
-
         log.info("Data persisted successfully, data name: {}", envelope.getDataHeader().getName());
+
+        // Publish data to hadoop downstream system
+        hadoopService.pushDataToHadoop(objectMapper.writeValueAsString(envelope));
+
         return true;
     }
 
@@ -56,6 +68,20 @@ public class ServerImpl implements Server {
                 .map(this::buildDataBody)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public void updateHeader(String name, UpdateDataHeader updateDataHeader) throws Exception {
+      Optional<DataHeaderEntity>  dataHeaderEntityOptional = dataHeaderRepository.findByName(name);
+      if(!dataHeaderEntityOptional.isPresent()){
+          log.error("Data header not found for name {}", name);
+          throw new DataNotFoundException("Data header not found for name "+ name);
+      }
+        DataHeaderEntity dataHeaderEntityDb = dataHeaderEntityOptional.get();
+        dataHeaderEntityDb.setBlocktype(updateDataHeader.getBlockType());
+        dataHeaderRepository.save(dataHeaderEntityDb);
+        log.info("Saved data header for name {} and block type update value {}", name, updateDataHeader.getBlockType());
+    }
+
 
     private com.db.dataplatform.techtest.server.dto.DataBody buildDataBody(DataBodyEntity dataBodyEntity){
         com.db.dataplatform.techtest.server.dto.DataHeader dataHeader =  modelMapper.map(dataBodyEntity.getDataHeaderEntity(), com.db.dataplatform.techtest.server.dto.DataHeader.class);
@@ -71,6 +97,7 @@ public class ServerImpl implements Server {
         DataBodyEntity dataBodyEntity = modelMapper.map(envelope.getDataBody(), DataBodyEntity.class);
         dataBodyEntity.setDataCheckSum(requestCheckSum);
         dataBodyEntity.setDataHeaderEntity(dataHeaderEntity);
+        dataHeaderEntity.setDataBodyEntity(dataBodyEntity);
         return  dataBodyEntity;
     }
 }

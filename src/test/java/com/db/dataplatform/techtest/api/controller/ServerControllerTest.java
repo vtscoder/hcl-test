@@ -1,10 +1,10 @@
 package com.db.dataplatform.techtest.api.controller;
 
+import com.db.dataplatform.techtest.Constants;
 import com.db.dataplatform.techtest.TestDataHelper;
-import com.db.dataplatform.techtest.client.Constants;
 import com.db.dataplatform.techtest.server.api.controller.ServerController;
 import com.db.dataplatform.techtest.server.api.model.DataEnvelope;
-import com.db.dataplatform.techtest.server.component.Server;
+import com.db.dataplatform.techtest.server.service.Server;
 import com.db.dataplatform.techtest.server.exception.CheckSumNotMatchingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;

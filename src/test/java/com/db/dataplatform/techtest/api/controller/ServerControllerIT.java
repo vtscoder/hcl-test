@@ -1,8 +1,8 @@
 package com.db.dataplatform.techtest.api.controller;
 
+import com.db.dataplatform.techtest.Constants;
 import com.db.dataplatform.techtest.TechTestApplication;
 import com.db.dataplatform.techtest.TestDataHelper;
-import com.db.dataplatform.techtest.client.Constants;
 import com.db.dataplatform.techtest.server.api.controller.ServerController;
 import com.db.dataplatform.techtest.server.api.model.DataEnvelope;
 import com.db.dataplatform.techtest.server.persistence.BlockTypeEnum;
@@ -14,20 +14,27 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
+import org.springframework.web.client.RestTemplate;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@ActiveProfiles("int")
 @SpringBootTest(classes = TechTestApplication.class)
 public class ServerControllerIT {
 
@@ -42,26 +49,37 @@ public class ServerControllerIT {
     @Autowired
     private DataHeaderRepository dataHeaderRepository;
 
+    @MockBean
+    private RestTemplate restTemplate;
+
+    @Value("${hadoop.data.push.api}")
+    private String hadoopApi;
+
     @BeforeEach
     public void init(){
         this.mvc = MockMvcBuilders.standaloneSetup(serverController).build();
         objectMapper = Jackson2ObjectMapperBuilder
                 .json()
                 .build();
-        dataStoreRepository.deleteAll();
         dataHeaderRepository.deleteAll();
+        dataStoreRepository.deleteAll();
     }
 
     @AfterEach
     public void after(){
-        dataStoreRepository.deleteAll();
         dataHeaderRepository.deleteAll();
+        dataStoreRepository.deleteAll();
     }
 
     @Test
-   public void shouldTestPushData() throws Exception {
+   public void shouldTestPushDataSuccessfulWithRetry() throws Exception {
 
         DataEnvelope testDataEnvelope = TestDataHelper.createTestDataEnvelopeApiObject();
+
+        Mockito.when(restTemplate
+                .postForEntity(ArgumentMatchers.eq(hadoopApi),
+                        ArgumentMatchers.anyString(),
+                        ArgumentMatchers.eq(String.class))).thenThrow(new RuntimeException("")).thenReturn(ResponseEntity.ok().build());
 
         this.mvc.perform(MockMvcRequestBuilders.post("/api/v1/dataserver/data")
                 .header(Constants.X_REQUEST_BODY_CHECKSUM, TestDataHelper.REQUEST_CHECKSUM)
@@ -69,6 +87,12 @@ public class ServerControllerIT {
                 .content(objectMapper.writeValueAsString(testDataEnvelope))
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk());
+
+        Mockito.verify(restTemplate, Mockito.times(2))
+                .postForEntity(ArgumentMatchers.eq(hadoopApi),
+                        ArgumentMatchers.anyString(),
+                        ArgumentMatchers.eq(String.class));
+
 
         List<DataHeaderEntity> dataHeaderEntities = dataHeaderRepository.findAll();
         assertThat(dataHeaderEntities.get(0).getId()).isNotNull();
@@ -82,6 +106,34 @@ public class ServerControllerIT {
         assertThat(dataBodyEntities.get(0).getDataCheckSum()).isEqualTo(TestDataHelper.REQUEST_CHECKSUM);
         assertThat(dataBodyEntities.get(0).getDataBody()).isEqualTo(testDataEnvelope.getDataBody().getDataBody());
         assertThat(dataBodyEntities.get(0).getDataHeaderEntity().getId()).isEqualTo(dataHeaderEntities.get(0).getId());
+    }
+
+
+    @Test
+    public void shouldTestPushDataFailedAfterRetryExhaust() throws Exception {
+
+        DataEnvelope testDataEnvelope = TestDataHelper.createTestDataEnvelopeApiObject();
+
+        Mockito.when(restTemplate
+                .postForEntity(ArgumentMatchers.eq(hadoopApi),
+                        ArgumentMatchers.anyString(),
+                        ArgumentMatchers.eq(String.class))).thenThrow(new RuntimeException(""))
+                .thenThrow(new RuntimeException(""))
+                .thenThrow(new RuntimeException(""));
+
+        this.mvc.perform(MockMvcRequestBuilders.post("/api/v1/dataserver/data")
+                        .header(Constants.X_REQUEST_BODY_CHECKSUM, TestDataHelper.REQUEST_CHECKSUM)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(testDataEnvelope))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isInternalServerError());
+
+        // Retried 3 attempts and failed
+        Mockito.verify(restTemplate, Mockito.times(3))
+                .postForEntity(ArgumentMatchers.eq(hadoopApi),
+                        ArgumentMatchers.anyString(),
+                        ArgumentMatchers.eq(String.class));
+
     }
 
     @Test
@@ -101,10 +153,14 @@ public class ServerControllerIT {
 
         DataHeaderEntity dataHeaderEntity =  TestDataHelper.createTestDataHeaderEntity(BlockTypeEnum.BLOCKTYPEA,"name", Instant.now());
         DataBodyEntity dataBodyEntity =  TestDataHelper.createTestDataBodyEntity(dataHeaderEntity);
+        dataHeaderEntity.setDataBodyEntity(dataBodyEntity);
         DataHeaderEntity dataHeaderEntity_1 =  TestDataHelper.createTestDataHeaderEntity(BlockTypeEnum.BLOCKTYPEA,"name1", Instant.now());
         DataBodyEntity dataBodyEntity_1 =  TestDataHelper.createTestDataBodyEntity(dataHeaderEntity_1);
+        dataHeaderEntity_1.setDataBodyEntity(dataBodyEntity_1);
         DataHeaderEntity dataHeaderEntity_2 =  TestDataHelper.createTestDataHeaderEntity(BlockTypeEnum.BLOCKTYPEB,"name3", Instant.now());
         DataBodyEntity dataBodyEntity_2 =  TestDataHelper.createTestDataBodyEntity(dataHeaderEntity_2);
+        dataHeaderEntity_2.setDataBodyEntity(dataBodyEntity_2);
+
         dataStoreRepository.saveAll(Arrays.asList(dataBodyEntity, dataBodyEntity_1, dataBodyEntity_2));
 
         this.mvc.perform(MockMvcRequestBuilders.get("/api/v1/dataserver/data/blocktypea")

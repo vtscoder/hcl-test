@@ -6,7 +6,9 @@ import com.db.dataplatform.techtest.client.api.model.DataHeader;
 import com.db.dataplatform.techtest.client.component.Client;
 import com.db.dataplatform.techtest.server.persistence.BlockTypeEnum;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -16,8 +18,9 @@ import org.springframework.retry.annotation.EnableRetry;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
-import static com.db.dataplatform.techtest.Constant.DUMMY_DATA;
+import static com.db.dataplatform.techtest.Constants.DUMMY_DATA;
 
+@Slf4j
 @SpringBootApplication
 @EnableRetry
 public class TechTestApplication {
@@ -33,17 +36,24 @@ public class TechTestApplication {
 		SpringApplication.run(TechTestApplication.class, args);
 	}
 
-	@EventListener(ApplicationReadyEvent.class)
-	public void initiatePushDataFlow() throws JsonProcessingException, UnsupportedEncodingException {
-//		pushData();
-//
-//		queryData();
-//
-//		updateData();
+	/**
+	 * We don't want to run any dummy data in prod, so skipping event for 'prod' active profile
+	 * also for integration test server events are skipped.
+	 */
+	@EventListener(value = ApplicationReadyEvent.class, condition = "!@environment.acceptsProfiles('int','prod')")
+	public void initiatePushDataFlow() throws Exception {
+		log.info("initiatePushDataFlow smoke test started");
+		pushData();
+
+		queryData();
+
+		updateData();
+		log.info("initiatePushDataFlow smoke test ended");
+
 	}
 
 	private void updateData() throws UnsupportedEncodingException {
-		boolean success = client.updateData(HEADER_NAME, BlockTypeEnum.BLOCKTYPEB.name());
+		 client.updateData(HEADER_NAME, BlockTypeEnum.BLOCKTYPEB.name());
 	}
 
 	private void queryData() {
@@ -51,7 +61,7 @@ public class TechTestApplication {
 		List<com.db.dataplatform.techtest.server.dto.DataBody> data = client.getData(BlockTypeEnum.BLOCKTYPEA.name());
 	}
 
-	private void pushData() throws JsonProcessingException {
+	private void pushData() throws Exception {
 
 		DataBody dataBody = new DataBody(DUMMY_DATA);
 

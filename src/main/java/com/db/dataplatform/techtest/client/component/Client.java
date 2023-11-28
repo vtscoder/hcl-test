@@ -8,7 +8,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 public interface Client {
-    void pushData(DataEnvelope dataEnvelope) throws JsonProcessingException;
+    void pushData(DataEnvelope dataEnvelope) throws Exception;
     List<DataBody> getData(String blockType);
-    boolean updateData(String blockName, String newBlockType) throws UnsupportedEncodingException;
+    void updateData(String blockName, String newBlockType) throws UnsupportedEncodingException;
 }

@@ -33,6 +33,10 @@ public class DataHeaderEntity {
     @Column(name = "CREATED_TIMESTAMP")
     private Instant createdTimestamp;
 
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "DATA_STORE_ID")
+    private DataBodyEntity dataBodyEntity;
+
     @PrePersist
     public void setTimestamps() {
         if (createdTimestamp == null) {

@@ -1,10 +1,11 @@
 package com.db.dataplatform.techtest.server.api.controller;
 
-import com.db.dataplatform.techtest.client.Constants;
-import com.db.dataplatform.techtest.server.api.model.DataBody;
+import com.db.dataplatform.techtest.Constants;
 import com.db.dataplatform.techtest.server.api.model.DataEnvelope;
-import com.db.dataplatform.techtest.server.component.Server;
+import com.db.dataplatform.techtest.server.api.model.UpdateDataHeader;
+import com.db.dataplatform.techtest.server.service.Server;
 import com.db.dataplatform.techtest.server.exception.CheckSumNotMatchingException;
+import com.db.dataplatform.techtest.server.exception.DownStreamPushDataException;
 import com.db.dataplatform.techtest.server.persistence.BlockTypeEnum;
 import com.db.dataplatform.techtest.server.persistence.convertor.BlockTypeConverter;
 import lombok.RequiredArgsConstructor;
@@ -42,13 +43,26 @@ public class ServerController {
             log.error(checkSumNotMatchingException.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, checkSumNotMatchingException.getMessage());
         }
+        catch (DownStreamPushDataException downStreamPushDataException){
+            log.error(downStreamPushDataException.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, downStreamPushDataException.getMessage());
+        }
         log.info("Data envelope persisted. Attribute name: {}", dataEnvelope.getDataHeader().getName());
         return ResponseEntity.ok(checksumPass);
     }
 
-    @GetMapping(value = "/data/{blockType}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/data/{blockType}")
     public ResponseEntity<List<com.db.dataplatform.techtest.server.dto.DataBody>> getDataByBlockType(@PathVariable BlockTypeEnum blockType) {
         return ResponseEntity.ok(server.getDataByBlockType(blockType));
+    }
+
+
+    @PutMapping(value = "/data/{name}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity updateHeader(
+            @PathVariable String name,
+            @Valid @RequestBody UpdateDataHeader updateDataHeader) throws Exception {
+        server.updateHeader(name, updateDataHeader);
+        return ResponseEntity.ok().build();
     }
 
     @InitBinder
