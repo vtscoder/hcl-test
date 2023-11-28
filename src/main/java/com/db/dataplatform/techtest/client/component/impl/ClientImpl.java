@@ -64,14 +64,14 @@ public class ClientImpl implements Client {
     }
 
     @Override
-    public void updateData(String blockName, String newBlockType) {
+    public void patchData(String blockName, String newBlockType) {
         log.info("Updating block type to {} for block with name {}", newBlockType, blockName);
         Map<String,String> variables = new HashMap<>();
         variables.put("name", blockName);
 
         UpdateDataHeader updateDataHeader =  UpdateDataHeader.builder().blockType(BlockTypeEnum.valueOf(newBlockType)).build();
 
-        restTemplate.put(URI_PATCHDATA.expand(variables), updateDataHeader);
+        restTemplate.patchForObject(URI_PATCHDATA.expand(variables), updateDataHeader, void.class);
         log.info("Update block type {} for name {}", newBlockType,blockName);
     }
 

@@ -5,10 +5,8 @@ import com.db.dataplatform.techtest.client.api.model.DataEnvelope;
 import com.db.dataplatform.techtest.client.api.model.DataHeader;
 import com.db.dataplatform.techtest.client.component.Client;
 import com.db.dataplatform.techtest.server.persistence.BlockTypeEnum;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -38,7 +36,7 @@ public class TechTestApplication {
 
 	/**
 	 * We don't want to run any dummy data in prod, so skipping event for 'prod' active profile
-	 * also for integration test server events are skipped.
+	 * also for integration test , event listener trigger is skipped.
 	 */
 	@EventListener(value = ApplicationReadyEvent.class, condition = "!@environment.acceptsProfiles('int','prod')")
 	public void initiatePushDataFlow() throws Exception {
@@ -53,7 +51,7 @@ public class TechTestApplication {
 	}
 
 	private void updateData() throws UnsupportedEncodingException {
-		 client.updateData(HEADER_NAME, BlockTypeEnum.BLOCKTYPEB.name());
+		 client.patchData(HEADER_NAME, BlockTypeEnum.BLOCKTYPEB.name());
 	}
 
 	private void queryData() {
